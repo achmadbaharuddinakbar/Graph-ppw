@@ -98,7 +98,7 @@ if st.button("Tampilkan Hasil"):
         nx.draw(G, pos, with_labels=True, node_color='skyblue', node_size=2000, font_size=10, font_color='black')
         st.pyplot(plt)
 
-        # 9. Centrality Measures
+        # 9. Centrality Measures (save once to session state)
         betweenness_centrality = nx.betweenness_centrality(G)
         degree_centrality = nx.degree_centrality(G)
         closeness_centrality = nx.closeness_centrality(G)
@@ -109,15 +109,19 @@ if st.button("Tampilkan Hasil"):
             'Degree Centrality': list(degree_centrality.values()),
             'Closeness Centrality': list(closeness_centrality.values())
         }).sort_values(by=['Degree Centrality'], ascending=False)
+        
+        # Store centrality data in session state
+        st.session_state['centrality_df'] = centrality_df
 
         st.subheader("Centrality Measures")
         st.write(centrality_df)
 
-        # 10. Top N Selection
-        top_n = st.selectbox("Pilih top N berdasarkan Degree Centrality", [3, 5, 10])
-        top_n_df = centrality_df.nlargest(top_n, 'Degree Centrality')
+# Only refresh ranking without recalculating full process
+if 'centrality_df' in st.session_state:
+    top_n = st.selectbox("Pilih top N berdasarkan Degree Centrality", [3, 5, 10])
+    top_n_df = st.session_state['centrality_df'].nlargest(top_n, 'Degree Centrality')
 
-        # 11. Merge for final result
-        top_n_final_df = pd.merge(top_n_df[['Kalimat']], result_df, left_on='Kalimat', right_on='kalimat ke n')
-        st.subheader(f"Top {top_n} Kalimat berdasarkan Degree Centrality")
-        st.write(top_n_final_df[['kalimat ke n', 'final']])
+    # 11. Merge for final result
+    top_n_final_df = pd.merge(top_n_df[['Kalimat']], result_df, left_on='Kalimat', right_on='kalimat ke n')
+    st.subheader(f"Top {top_n} Kalimat berdasarkan Degree Centrality")
+    st.write(top_n_final_df[['kalimat ke n', 'final']])
