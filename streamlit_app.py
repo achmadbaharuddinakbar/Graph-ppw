@@ -22,11 +22,11 @@ def remove_html(text):
 
 def remove_emoji(text):
     emoji_pattern = re.compile("[" 
-        u"\U0001F600-\U0001F64F" 
-        u"\U0001F300-\U0001F5FF" 
-        u"\U0001F680-\U0001F6FF" 
-        u"\U0001F1E0-\U0001F1FF" 
-        "]+", flags=re.UNICODE)
+                               u"\U0001F600-\U0001F64F" 
+                               u"\U0001F300-\U0001F5FF" 
+                               u"\U0001F680-\U0001F6FF" 
+                               u"\U0001F1E0-\U0001F1FF" 
+                               "]+", flags=re.UNICODE)
     return emoji_pattern.sub(r'', text)
 
 def remove_numbers(text):
@@ -110,16 +110,19 @@ if st.button("Tampilkan Hasil"):
             'Closeness Centrality': list(closeness_centrality.values())
         }).sort_values(by=['Degree Centrality'], ascending=False)
         
-        # Store centrality data in session state
+        # Store centrality data and result_df in session state
         st.session_state['centrality_df'] = centrality_df
+        st.session_state['result_df'] = result_df
 
         st.subheader("Centrality Measures")
         st.write(centrality_df)
 
 # Only refresh ranking without recalculating full process
-if 'centrality_df' in st.session_state:
+if 'centrality_df' in st.session_state and 'result_df' in st.session_state:
+    centrality_df = st.session_state['centrality_df']
+    result_df = st.session_state['result_df']
     top_n = st.selectbox("Pilih top N berdasarkan Degree Centrality", [3, 5, 10])
-    top_n_df = st.session_state['centrality_df'].nlargest(top_n, 'Degree Centrality')
+    top_n_df = centrality_df.nlargest(top_n, 'Degree Centrality')
 
     # 11. Merge for final result
     top_n_final_df = pd.merge(top_n_df[['Kalimat']], result_df, left_on='Kalimat', right_on='kalimat ke n')
