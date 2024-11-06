@@ -21,12 +21,7 @@ def remove_html(text):
     return re.sub(r'<.*?>', '', text)
 
 def remove_emoji(text):
-    emoji_pattern = re.compile("["
-        u"\U0001F600-\U0001F64F"
-        u"\U0001F300-\U0001F5FF"
-        u"\U0001F680-\U0001F6FF"
-        u"\U0001F1E0-\U0001F1FF"
-        "]+", flags=re.UNICODE)
+    emoji_pattern = re.compile("[" u"\U0001F600-\U0001F64F" u"\U0001F300-\U0001F5FF" u"\U0001F680-\U0001F6FF" u"\U0001F1E0-\U0001F1FF" "]+", flags=re.UNICODE)
     return emoji_pattern.sub(r'', text)
 
 def remove_numbers(text):
@@ -47,6 +42,9 @@ def remove_stopwords(text):
 # Input berita
 st.title("Proses Berita dan Analisis Similarity")
 user_input = st.text_area("Masukkan Berita Baru", "")
+
+if 'top_n' not in st.session_state:
+    st.session_state.top_n = 3
 
 if user_input:
     if st.button("Tampilkan Hasil"):
@@ -113,7 +111,9 @@ if user_input:
         st.write(centrality_df)
 
         # 10. Top N Selection
-        top_n = st.selectbox("Pilih top N berdasarkan Degree Centrality", [3, 5, 10])
+        top_n = st.selectbox("Pilih top N berdasarkan Degree Centrality", [3, 5, 10], index=[3, 5, 10].index(st.session_state.top_n))
+        st.session_state.top_n = top_n  # Update session state
+
         top_n_df = centrality_df.nlargest(top_n, 'Degree Centrality')
 
         # 11. Merge untuk hasil final
