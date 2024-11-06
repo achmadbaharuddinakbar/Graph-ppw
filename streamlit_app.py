@@ -70,23 +70,23 @@ if st.button("Tampilkan Hasil"):
         tfidf_df = pd.DataFrame(tfidf_matrix.toarray(), columns=feature_names)
         tfidf_df.insert(0, 'kalimat ke n', result_df['kalimat ke n'])
 
-        st.subheader("TF-IDF Matrix")
-        st.write(tfidf_df)
+        # Store TF-IDF matrix in session state
+        st.session_state['tfidf_df'] = tfidf_df
 
         # 5. Cosine Similarity
         cosine_sim = cosine_similarity(tfidf_matrix)
         cosine_sim_df = pd.DataFrame(cosine_sim, index=result_df['kalimat ke n'], columns=result_df['kalimat ke n'])
+
+        # Store Cosine Similarity matrix in session state
+        st.session_state['cosine_sim_df'] = cosine_sim_df
 
         # 6. Threshold 0.01 and Adjacency Matrix
         threshold = 0.01
         adjacency_matrix = np.where(cosine_sim >= threshold, 1, 0)
         adjacency_df = pd.DataFrame(adjacency_matrix, index=result_df['kalimat ke n'], columns=result_df['kalimat ke n'])
 
-        st.subheader("Cosine Similarity Matrix")
-        st.write(cosine_sim_df)
-
-        st.subheader("Adjacency Matrix")
-        st.write(adjacency_df)
+        # Store Adjacency Matrix in session state
+        st.session_state['adjacency_df'] = adjacency_df
 
         # 8. Graph Adjacency
         G = nx.from_numpy_array(adjacency_matrix)
@@ -96,9 +96,9 @@ if st.button("Tampilkan Hasil"):
         plt.figure(figsize=(10, 10))
         pos = nx.spring_layout(G)
         nx.draw(G, pos, with_labels=True, node_color='skyblue', node_size=2000, font_size=10, font_color='black')
-        st.pyplot(plt)
+        st.session_state['graph_fig'] = plt
 
-        # 9. Centrality Measures (save once to session state)
+        # 9. Centrality Measures
         betweenness_centrality = nx.betweenness_centrality(G)
         degree_centrality = nx.degree_centrality(G)
         closeness_centrality = nx.closeness_centrality(G)
@@ -109,13 +109,30 @@ if st.button("Tampilkan Hasil"):
             'Degree Centrality': list(degree_centrality.values()),
             'Closeness Centrality': list(closeness_centrality.values())
         }).sort_values(by=['Degree Centrality'], ascending=False)
-        
+
         # Store centrality data and result_df in session state
         st.session_state['centrality_df'] = centrality_df
         st.session_state['result_df'] = result_df
 
-        st.subheader("Centrality Measures")
-        st.write(centrality_df)
+# Display stored matrices and centrality data if available
+if 'tfidf_df' in st.session_state:
+    st.subheader("TF-IDF Matrix")
+    st.write(st.session_state['tfidf_df'])
+
+if 'cosine_sim_df' in st.session_state:
+    st.subheader("Cosine Similarity Matrix")
+    st.write(st.session_state['cosine_sim_df'])
+
+if 'adjacency_df' in st.session_state:
+    st.subheader("Adjacency Matrix")
+    st.write(st.session_state['adjacency_df'])
+
+if 'graph_fig' in st.session_state:
+    st.pyplot(st.session_state['graph_fig'])
+
+if 'centrality_df' in st.session_state:
+    st.subheader("Centrality Measures")
+    st.write(st.session_state['centrality_df'])
 
 # Only refresh ranking without recalculating full process
 if 'centrality_df' in st.session_state and 'result_df' in st.session_state:
